@@ -33,9 +33,23 @@ Open the URL printed in your terminal (typically `http://localhost:5173`) in Chr
 1. Click **Start Playing**
 2. Grant camera permission when prompted
 3. Hold one hand in view and position your face in frame
-4. **Valves** — curl your index, middle, or ring finger to "press" a valve
-5. **Embouchure** — shape your lips (closed, tensed, pursed, etc.) to control airflow
+4. **Valves** — curl your ring (1st/Front), middle (2nd/Mid), or index (3rd/Back) finger to press a valve
+5. **Embouchure** — shape your lips to control pitch register:
+
+| Lip State | How to make it | Effect |
+|-----------|---------------|--------|
+| **Open** | Mouth open naturally | No sound (silence) |
+| **Closed** | Lips together, relaxed | Lower register (C4–F#4) |
+| **Strained** | Lips pressed tight, narrow vertical gap | Upper register (G4–B4) |
+
 6. The detected note plays automatically through your speakers
+
+### Note Map
+
+| Lip State \ Valves | None | Front (1st) | Mid (2nd) | Back (3rd) | Mid+Front | Back+Front | Back+Mid |
+|---|---|---|---|---|---|---|---|
+| **Closed** | C4 | E4 | F#4 | F4 | D#4 | D4 | E4 |
+| **Strained** | G4 | A4 | B4 | A#4 | G#4 | G4 | A4 |
 
 > **Tip:** Sit about 40 cm (arm's length) from your webcam for the best lip detection accuracy.
 
