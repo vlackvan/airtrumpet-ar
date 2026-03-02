@@ -47,24 +47,25 @@ export function airflowClassification(lm, distToScreen) {
     const yDiffOuter = Math.abs(lm[0].y - lm[17].y);
     const lipIsClosed = Math.ceil(lm[13].y * 100) >= Math.floor(lm[14].y * 100);
 
+    // Lip is closed when inner upper lip meets or overlaps inner lower lip
+    const lipIsClosed =
+        Math.ceil(lm[13].y * 100) >= Math.floor(lm[14].y * 100);
+
+    // Lip NOT closed → "Open" (Pursed collapsed into Open)
     if (!lipIsClosed) {
-        if (xDiffEdge <= PURSED_LIPS_THRESHOLD_X * scale) {
-            return 'Pursed';
-        }
+        return 'Open';
     }
 
+    // Lip IS closed → "Strained" or "Closed"
+    // Strained: tight vertical gap with moderate-to-wide commissures
+    // (absorbs both Strained and Forced from the original 6-state model)
     if (lipIsClosed) {
-        if (xDiffEdge <= PURSED_LIPS_THRESHOLD_X * scale) {
-            return 'Forced';
-        }
-        if (yDiffOuter <= STRAINED_LIPS_THRESHOLD_Y * scale && xDiffEdge > PURSED_LIPS_THRESHOLD_X * scale) {
-            if (xDiffEdge >= STRAINED_LIPS_THRESHOLD_X * scale) {
-                return 'Strained';
-            }
-            return 'Tensed';
+        if (yDiffOuter <= STRAINED_LIPS_THRESHOLD_Y * scale) {
+            return 'Strained';
         }
         return 'Closed';
     }
+
     return 'Open';
 }
 
@@ -73,49 +74,24 @@ export function airflowClassification(lm, distToScreen) {
  */
 export const TONE_TABLE = {
     Closed: {
-        BackMiddleFront: 'F#3',
-        BackFront: 'G3',
-        MiddleFront: 'G#3',
-        BackMiddle: 'A3',
-        Front: 'A3',
-        Back: 'A#3',
-        Middle: 'B3',
+        // BackMiddleFront: no mapping (all 3 valves = no note)
         None: 'C4',
-    },
-    Tensed: {
-        BackMiddleFront: 'C#4',
-        BackFront: 'D4',
-        MiddleFront: 'D#4',
-        BackMiddle: 'E4',
         Front: 'E4',
-        Back: 'F4',
         Middle: 'F#4',
-        None: 'G4',
+        Back: 'F4',
+        MiddleFront: 'D#4',   // Eb4
+        BackFront: 'D4',
+        BackMiddle: 'E4',
     },
     Strained: {
-        MiddleFront: 'G#4',
-        BackMiddle: 'A4',
+        // BackMiddleFront: no mapping
+        None: 'G4',
         Front: 'A4',
-        Back: 'A#4',
         Middle: 'B4',
-        None: 'C5',
-    },
-    Pursed: {
-        BackMiddle: 'C#5',
-        BackFront: 'D5',
-        MiddleFront: 'D#5',
-        Front: 'E5',
-        Back: 'F5',
-        Middle: 'F#5',
-        None: 'G5',
-    },
-    Forced: {
-        MiddleFront: 'G#5',
-        BackMiddle: 'A5',
-        Front: 'A5',
-        Back: 'A#5',
-        Middle: 'B5',
-        None: 'C6',
+        Back: 'A#4',   // Bb4
+        MiddleFront: 'G#4',   // Ab4
+        BackFront: 'G4',
+        BackMiddle: 'A4',
     },
 };
 

@@ -70,7 +70,29 @@ function drawLipLoop(ctx, w, h, lm, indices, fill) {
 }
 
 export function updateHUD(valveState, lipState, noteString) {
-    // 1. Update Note Display (Now in top-left)
+    // Valve indicators
+    const backEl = document.getElementById('valve-back');
+    const midEl = document.getElementById('valve-middle');
+    const frontEl = document.getElementById('valve-front');
+
+    if (backEl) backEl.classList.toggle('pressed', valveState.includes('Front'));
+    if (midEl) midEl.classList.toggle('pressed', valveState.includes('Middle'));
+    if (frontEl) frontEl.classList.toggle('pressed', valveState.includes('Back'));
+
+    // Lip state badge
+    const lipBadge = document.getElementById('lip-badge');
+    if (lipBadge) {
+        const lipTranslations = {
+            'Open': '열림 (Open)',
+            'Closed': '닫힘 (Closed)',
+            'Strained': '조임 (Strained)',
+            'Not Detected': '감지되지 않음'
+        };
+        lipBadge.textContent = lipTranslations[lipState] || lipState;
+        lipBadge.setAttribute('data-state', lipState);
+    }
+
+    // Note display
     const noteDisplay = document.getElementById('note-display');
     if (noteDisplay) {
         const isPlaying = noteString && noteString !== 'None' && noteString !== 'Not Detected';

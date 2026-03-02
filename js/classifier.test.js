@@ -136,38 +136,44 @@ describe('valveClassification', () => {
 // toneClassification
 // ════════════════════════════════════════════
 describe('toneClassification', () => {
-    // Spot-check from the full note matrix
+    // ── Closed lip state ──
     it('Closed + None → C4', () => expect(toneClassification('None', 'Closed')).toBe('C4'));
-    it('Closed + Back → A#3', () => expect(toneClassification('Back', 'Closed')).toBe('A#3'));
-    it('Closed + BackMiddleFront → F#3', () => expect(toneClassification('BackMiddleFront', 'Closed')).toBe('F#3'));
-    it('Closed + Front → A3', () => expect(toneClassification('Front', 'Closed')).toBe('A3'));
+    it('Closed + Front → E4', () => expect(toneClassification('Front', 'Closed')).toBe('E4'));
+    it('Closed + Middle → F#4', () => expect(toneClassification('Middle', 'Closed')).toBe('F#4'));
+    it('Closed + Back → F4', () => expect(toneClassification('Back', 'Closed')).toBe('F4'));
+    it('Closed + MiddleFront → D#4', () => expect(toneClassification('MiddleFront', 'Closed')).toBe('D#4'));
+    it('Closed + BackFront → D4', () => expect(toneClassification('BackFront', 'Closed')).toBe('D4'));
+    it('Closed + BackMiddle → E4', () => expect(toneClassification('BackMiddle', 'Closed')).toBe('E4'));
 
-    it('Tensed + None → G4', () => expect(toneClassification('None', 'Tensed')).toBe('G4'));
-    it('Tensed + Front → E4', () => expect(toneClassification('Front', 'Tensed')).toBe('E4'));
-    it('Tensed + Middle → F#4', () => expect(toneClassification('Middle', 'Tensed')).toBe('F#4'));
-
-    it('Strained + None → C5', () => expect(toneClassification('None', 'Strained')).toBe('C5'));
+    // ── Strained lip state ──
+    it('Strained + None → G4', () => expect(toneClassification('None', 'Strained')).toBe('G4'));
     it('Strained + Front → A4', () => expect(toneClassification('Front', 'Strained')).toBe('A4'));
+    it('Strained + Middle → B4', () => expect(toneClassification('Middle', 'Strained')).toBe('B4'));
+    it('Strained + Back → A#4', () => expect(toneClassification('Back', 'Strained')).toBe('A#4'));
+    it('Strained + MiddleFront → G#4', () => expect(toneClassification('MiddleFront', 'Strained')).toBe('G#4'));
+    it('Strained + BackFront → G4', () => expect(toneClassification('BackFront', 'Strained')).toBe('G4'));
+    it('Strained + BackMiddle → A4', () => expect(toneClassification('BackMiddle', 'Strained')).toBe('A4'));
 
-    it('Pursed + None → G5', () => expect(toneClassification('None', 'Pursed')).toBe('G5'));
-    it('Pursed + Front → E5', () => expect(toneClassification('Front', 'Pursed')).toBe('E5'));
-
-    it('Forced + Back → A#5', () => expect(toneClassification('Back', 'Forced')).toBe('A#5'));
-    it('Forced + None → C6 (no WAV)', () => expect(toneClassification('None', 'Forced')).toBe('C6'));
-
-    // Unmapped combos return "None"
+    // ── Unmapped combos → "None" ──
+    it('Closed + BackMiddleFront → None (unmapped)', () => {
+        expect(toneClassification('BackMiddleFront', 'Closed')).toBe('None');
+    });
     it('Strained + BackMiddleFront → None (unmapped)', () => {
         expect(toneClassification('BackMiddleFront', 'Strained')).toBe('None');
-    });
-    it('Strained + BackFront → None (unmapped)', () => {
-        expect(toneClassification('BackFront', 'Strained')).toBe('None');
     });
     it('Open + any → None', () => {
         expect(toneClassification('None', 'Open')).toBe('None');
         expect(toneClassification('Back', 'Open')).toBe('None');
     });
-
-    // Unknown lip state
+    it('Tensed (removed) → None', () => {
+        expect(toneClassification('None', 'Tensed')).toBe('None');
+    });
+    it('Pursed (removed) → None', () => {
+        expect(toneClassification('None', 'Pursed')).toBe('None');
+    });
+    it('Forced (removed) → None', () => {
+        expect(toneClassification('None', 'Forced')).toBe('None');
+    });
     it('Unknown lip state → None', () => {
         expect(toneClassification('None', 'NotAReal')).toBe('None');
     });
