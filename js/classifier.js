@@ -47,8 +47,11 @@ export function airflowClassification(lm, distToScreen) {
     const yDiffOuter = Math.abs(lm[0].y - lm[17].y);
     const lipIsClosed = Math.ceil(lm[13].y * 100) >= Math.floor(lm[14].y * 100);
 
-    // Lip NOT closed → "Open" (Pursed collapsed into Open)
+    // Lip NOT closed
     if (!lipIsClosed) {
+        if (xDiffEdge <= PURSED_LIPS_THRESHOLD_X * scale) {
+            return 'Pursed';
+        }
         return 'Open';
     }
 
@@ -88,6 +91,16 @@ export const TONE_TABLE = {
         MiddleFront: 'G#4',   // Ab4
         BackFront: 'G4',
         BackMiddle: 'A4',
+    },
+    Pursed: {
+        BackMiddleFront: 'A#4',  // Bb4
+        None: 'C5',
+        Front: 'C#5',
+        Middle: 'D#5',
+        Back: 'D5',
+        MiddleFront: 'C#5',
+        BackFront: 'B4',
+        BackMiddle: 'C5',
     },
 };
 
