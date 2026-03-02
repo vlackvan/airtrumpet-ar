@@ -1,11 +1,5 @@
 /**
  * AirTrumpet — Note → WAV Path Lookup
- *
- * Maps 29 playable note names to their WAV file paths in /sounds/.
- * Mirrors the Python TrumpetNoteSample StrEnum (main.py lines 32–74).
- *
- * Notes B5 and C6 are classified by toneClassification but have
- * no WAV file — they map to null.
  */
 
 const NOTE_MAP = {
@@ -38,10 +32,55 @@ const NOTE_MAP = {
     'G#5': '/sounds/357433__mtg__trumpet-gsharp5-truncated.wav',
     'A5': '/sounds/357328__mtg__trumpet-a5-truncated.wav',
     'A#5': '/sounds/357469__mtg__trumpet-asharp5-truncated.wav',
-
-    // No quality sound samples for these notes
     'B5': null,
     'C6': null,
 };
+
+/**
+ * Converts English note names (C, D, E...) to Korean names (도, 레, 미...).
+ * @param {string} noteStr - e.g. "F#4", "C5"
+ * @returns {string} - e.g. "파#4", "도5"
+ */
+export function toKoreanNote(noteStr) {
+    if (!noteStr || noteStr === 'None' || noteStr === 'Not Detected') return '—';
+    
+    const map = {
+        'C': '도',
+        'D': '레',
+        'E': '미',
+        'F': '파',
+        'G': '솔',
+        'A': '라',
+        'B': '시'
+    };
+    
+    const note = noteStr[0];
+    const suffix = noteStr.slice(1); // #4, 5 etc.
+    return (map[note] || note) + suffix;
+}
+
+/**
+ * Converts English lip/valve states to Korean.
+ */
+export function toKoreanState(state) {
+    const map = {
+        'Open': '열림',
+        'Closed': '닫힘',
+        'Tensed': '긴장',
+        'Strained': '강한 긴장',
+        'Pursed': '오므림',
+        'Forced': '압박',
+        'Not Detected': '감지 안 됨',
+        'None': '없음',
+        'Back': '1번',
+        'Middle': '2번',
+        'Front': '3번',
+        'BackMiddle': '1-2번',
+        'BackFront': '1-3번',
+        'MiddleFront': '2-3번',
+        'BackMiddleFront': '1-2-3번'
+    };
+    return map[state] || state;
+}
 
 export default NOTE_MAP;

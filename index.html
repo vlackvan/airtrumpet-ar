@@ -1,101 +1,107 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AirTrumpet — Virtual Gesture-Controlled Trumpet</title>
-    <meta name="description" content="Play a virtual trumpet using hand gestures and lip movements — powered by MediaPipe and Web Audio, entirely in your browser." />
+    <title>에어트럼펫 — 성균관대학교 관악부 특별판</title>
+    <meta name="description" content="손동작과 입 모양으로 연주하는 가상 트럼펫 — MediaPipe와 Web Audio 기술로 브라우저에서 바로 즐기세요." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css" />
   </head>
   <body>
     <div id="app">
 
-      <!-- Loading Screen -->
+      <!-- 로딩 화면 -->
       <div id="loading-screen">
         <div class="loading-content">
-          <div class="loading-icon">🎺</div>
+          <img src="/logos/Asset 3@2x.png" alt="성균관대학교 관악부 로고" class="main-logo" />
           <h1 class="loading-title">AirTrumpet</h1>
-          <p class="loading-subtitle">Initializing gesture detection…</p>
+          <p class="loading-subtitle">성균관대학교 관악부 특별판</p>
           <div class="loading-bar-track">
             <div class="loading-bar-fill" id="loading-progress"></div>
           </div>
-          <p class="loading-status" id="loading-status-text">Loading MediaPipe models…</p>
+          <p class="loading-status" id="loading-status-text">모델 로딩 중…</p>
         </div>
       </div>
 
-      <!-- Start Screen (shown after models load, before camera starts) -->
+      <!-- 시작 화면 -->
       <div id="start-screen" class="hidden">
         <div class="start-content">
-          <div class="start-icon">🎺</div>
           <h1 class="start-title">AirTrumpet</h1>
-          <p class="start-subtitle">A gesture-controlled virtual trumpet</p>
+          <p class="start-subtitle">성균관대학교 관악부 특별판</p>
+          
           <button id="start-btn" class="btn-primary">
             <span class="btn-icon">🎵</span>
-            Start Playing
+            연주 시작하기
           </button>
-          <p class="start-hint">Requires webcam access • Use hand gestures + lip shapes to play notes</p>
+          
+          <div class="start-footer">
+            <img src="/logos/Asset 3@2x.png" alt="성균관대학교 관악부 로고" class="footer-logo" />
+            <p class="start-hint">웹캠 액세스가 필요합니다 • 성균관대학교 관악부를 위해 개발되었습니다</p>
+          </div>
         </div>
       </div>
 
-      <!-- Main Interface -->
+      <!-- 메인 인터페이스 -->
       <div id="main-container" class="hidden">
-
-        <!-- Video / Canvas Stack -->
+        <!-- 비디오 / 캔버스 -->
         <div id="video-container">
           <video id="webcam" autoplay playsinline></video>
           <canvas id="overlay-canvas"></canvas>
 
-          <!-- FPS Counter -->
+          <!-- 왼쪽 상단 미니 HUD -->
+          <div id="top-left-hud">
+            <div class="mini-hud-label">현재 음표</div>
+            <div id="note-display" class="note-display-mini">—</div>
+            <button id="stop-btn" class="btn-stop-mini">연주 중단</button>
+            <div id="mini-lip-state" class="mini-status">입 모양 감지 중...</div>
+          </div>
+
+          <!-- FPS 카운터 -->
           <div id="fps-counter">-- FPS</div>
         </div>
 
-        <!-- HUD Panel -->
+        <!-- HUD 패널 (오른쪽 3개의 HUD 카드) -->
         <div id="hud-panel">
+          <div id="hud-right-column">
+            <!-- 설정 카드 -->
+            <div class="hud-card" id="settings-section">
+              <h2 class="hud-label">설정</h2>
+              <button id="toggle-octave-btn" class="btn-settings">옥타브 숨기기</button>
+            </div>
 
-          <!-- Valve State Indicator -->
-          <div class="hud-section" id="valve-section">
-            <h2 class="hud-label">Valves</h2>
-            <div class="valve-indicators">
-              <div class="valve" id="valve-back">
-                <span class="valve-label">1</span>
-                <span class="valve-name">Back</span>
+            <!-- 저음역 카드 -->
+            <div class="hud-card fingering-group" id="group-closed">
+              <div class="group-header">
+                <img src="/mouth/mouth_closed.png" class="mouth-img" alt="Closed Mouth" />
+                <span>저음 (입 닫음)</span>
               </div>
-              <div class="valve" id="valve-middle">
-                <span class="valve-label">2</span>
-                <span class="valve-name">Mid</span>
+              <div id="list-closed" class="fingering-list-static"></div>
+            </div>
+
+            <!-- 중음역 카드 -->
+            <div class="hud-card fingering-group" id="group-tense">
+              <div class="group-header">
+                <img src="/mouth/mouth_strain.png" class="mouth-img" alt="Tense Mouth" />
+                <span>중음 (긴장)</span>
               </div>
-              <div class="valve" id="valve-front">
-                <span class="valve-label">3</span>
-                <span class="valve-name">Front</span>
+              <div id="list-tense" class="fingering-list-static"></div>
+            </div>
+
+            <!-- 고음역 카드 -->
+            <div class="hud-card fingering-group" id="group-pursed">
+              <div class="group-header">
+                <img src="/mouth/mouth_strain.png" class="mouth-img" alt="Pursed Mouth" />
+                <span>고음 (오므림)</span>
               </div>
+              <div id="list-pursed" class="fingering-list-static"></div>
             </div>
           </div>
-
-          <!-- Lip State Indicator -->
-          <div class="hud-section" id="lip-section">
-            <h2 class="hud-label">Embouchure</h2>
-            <div class="lip-state-badge" id="lip-badge">Not Detected</div>
-          </div>
-
-          <!-- Note Display -->
-          <div class="hud-section" id="note-section">
-            <h2 class="hud-label">Note</h2>
-            <div class="note-display" id="note-display">—</div>
-          </div>
-
-          <!-- Controls -->
-          <div class="hud-section" id="controls-section">
-            <button id="stop-btn" class="btn-secondary">Stop</button>
-          </div>
-
         </div>
       </div>
-
     </div>
-
     <script type="module" src="/js/app.js"></script>
   </body>
 </html>
