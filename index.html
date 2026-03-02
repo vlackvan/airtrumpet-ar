@@ -1,110 +1,113 @@
 <!doctype html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>에어트럼펫 — 성균관대학교 관악부 특별판</title>
-    <meta name="description" content="손동작과 입 모양으로 연주하는 가상 트럼펫 — MediaPipe와 Web Audio 기술로 브라우저에서 바로 즐기세요." />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css" />
-  </head>
-  <body>
-    <div id="app">
 
-      <!-- 로딩 화면 -->
-      <div id="loading-screen">
-        <div class="loading-content">
-          <img src="/logos/Asset 3@2x.png" alt="성균관대학교 관악부 로고" class="main-logo" />
-          <h1 class="loading-title">AirTrumpet</h1>
-          <p class="loading-subtitle">성균관대학교 관악부 특별판</p>
-          <div class="loading-bar-track">
-            <div class="loading-bar-fill" id="loading-progress"></div>
-          </div>
-          <p class="loading-status" id="loading-status-text">모델 로딩 중…</p>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>에어트럼펫 — 성균관대학교 관악부 특별판</title>
+  <meta name="description" content="손동작과 입 모양으로 연주하는 가상 트럼펫 — MediaPipe와 Web Audio 기술로 브라우저에서 바로 즐기세요." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- 로딩 화면 -->
+    <div id="loading-screen">
+      <div class="loading-content">
+        <img src="/logos/Asset 3@2x.png" alt="성균관대학교 관악부 로고" class="main-logo" />
+        <h1 class="loading-title">AirTrumpet</h1>
+        <p class="loading-subtitle">성균관대학교 관악부 특별판</p>
+        <div class="loading-bar-track">
+          <div class="loading-bar-fill" id="loading-progress"></div>
         </div>
         <p class="loading-status" id="loading-status-text">MediaPipe 모델 불러오는 중…</p>
       </div>
     </div>
 
-      <!-- 시작 화면 -->
-      <div id="start-screen" class="hidden">
-        <div class="start-content">
-          <h1 class="start-title">AirTrumpet</h1>
-          <p class="start-subtitle">성균관대학교 관악부 특별판</p>
-          
-          <button id="start-btn" class="btn-primary">
-            <span class="btn-icon">🎵</span>
-            연주 시작하기
-          </button>
-          
-          <div class="start-footer">
-            <img src="/logos/Asset 3@2x.png" alt="성균관대학교 관악부 로고" class="footer-logo" />
-            <p class="start-hint">웹캠 액세스가 필요합니다 • 성균관대학교 관악부를 위해 개발되었습니다</p>
+    <!-- 시작 화면 -->
+    <div id="start-screen" class="hidden">
+      <div class="start-content">
+        <h1 class="start-title">AirTrumpet</h1>
+        <p class="start-subtitle">성균관대학교 관악부 특별판</p>
+
+        <button id="start-btn" class="btn-primary">
+          <span class="btn-icon">🎵</span>
+          연주 시작하기
+        </button>
+
+        <div class="start-footer">
+          <img src="/logos/Asset 3@2x.png" alt="성균관대학교 관악부 로고" class="footer-logo" />
+          <p class="start-hint">웹캠 액세스가 필요합니다 • 성균관대학교 관악부를 위해 개발되었습니다</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 메인 인터페이스 -->
+    <div id="main-container" class="hidden">
+      <!-- 비디오 / 캔버스 -->
+      <div id="video-container">
+        <video id="webcam" autoplay playsinline></video>
+        <canvas id="overlay-canvas"></canvas>
+
+        <!-- 왼쪽 상단 미니 HUD -->
+        <div id="top-left-hud">
+          <div class="mini-hud-label">현재 음표</div>
+          <div id="note-display" class="note-display-mini">—</div>
+          <button id="stop-btn" class="btn-stop-mini">연주 중단</button>
+          <div id="mini-lip-state" class="mini-status">입 모양 감지 중...</div>
+        </div>
+
+        <!-- FPS 카운터 -->
+        <div id="fps-counter">-- FPS</div>
+      </div>
+
+      <!-- HUD 패널 (오른쪽 3개의 HUD 카드) -->
+      <div id="hud-panel">
+        <div id="hud-right-column">
+          <!-- 설정 카드 -->
+          <div class="hud-card" id="settings-section">
+            <h2 class="hud-label">설정</h2>
+            <button id="toggle-octave-btn" class="btn-settings">옥타브 숨기기</button>
+          </div>
+
+          <!-- 저음역 카드 -->
+          <div class="hud-card fingering-group" id="group-closed">
+            <div class="group-header">
+              <img src="/mouth/mouth_closed.png" class="mouth-img" alt="Closed Mouth" />
+              <span>저음 (입 닫음)</span>
+            </div>
+            <div id="list-closed" class="fingering-list-static"></div>
+          </div>
+
+          <!-- 중음역 카드 -->
+          <div class="hud-card fingering-group" id="group-tense">
+            <div class="group-header">
+              <img src="/mouth/mouth_strain.png" class="mouth-img" alt="Tense Mouth" />
+              <span>중음 (긴장)</span>
+            </div>
+            <div id="list-tense" class="fingering-list-static"></div>
+          </div>
+
+          <!-- 고음역 카드 -->
+          <div class="hud-card fingering-group" id="group-pursed">
+            <div class="group-header">
+              <img src="/mouth/mouth_strain.png" class="mouth-img" alt="Pursed Mouth" />
+              <span>고음 (오므림)</span>
+            </div>
+            <div id="list-pursed" class="fingering-list-static"></div>
           </div>
         </div>
       </div>
     </div>
 
-      <!-- 메인 인터페이스 -->
-      <div id="main-container" class="hidden">
-        <!-- 비디오 / 캔버스 -->
-        <div id="video-container">
-          <video id="webcam" autoplay playsinline></video>
-          <canvas id="overlay-canvas"></canvas>
+  </div>
+  <script type="module" src="/js/app.js"></script>
+</body>
 
-          <!-- 왼쪽 상단 미니 HUD -->
-          <div id="top-left-hud">
-            <div class="mini-hud-label">현재 음표</div>
-            <div id="note-display" class="note-display-mini">—</div>
-            <button id="stop-btn" class="btn-stop-mini">연주 중단</button>
-            <div id="mini-lip-state" class="mini-status">입 모양 감지 중...</div>
-          </div>
-
-          <!-- FPS 카운터 -->
-          <div id="fps-counter">-- FPS</div>
-        </div>
-
-        <!-- HUD 패널 (오른쪽 3개의 HUD 카드) -->
-        <div id="hud-panel">
-          <div id="hud-right-column">
-            <!-- 설정 카드 -->
-            <div class="hud-card" id="settings-section">
-              <h2 class="hud-label">설정</h2>
-              <button id="toggle-octave-btn" class="btn-settings">옥타브 숨기기</button>
-            </div>
-
-            <!-- 저음역 카드 -->
-            <div class="hud-card fingering-group" id="group-closed">
-              <div class="group-header">
-                <img src="/mouth/mouth_closed.png" class="mouth-img" alt="Closed Mouth" />
-                <span>저음 (입 닫음)</span>
-              </div>
-              <div id="list-closed" class="fingering-list-static"></div>
-            </div>
-
-            <!-- 중음역 카드 -->
-            <div class="hud-card fingering-group" id="group-tense">
-              <div class="group-header">
-                <img src="/mouth/mouth_strain.png" class="mouth-img" alt="Tense Mouth" />
-                <span>중음 (긴장)</span>
-              </div>
-              <div id="list-tense" class="fingering-list-static"></div>
-            </div>
-
-            <!-- 고음역 카드 -->
-            <div class="hud-card fingering-group" id="group-pursed">
-              <div class="group-header">
-                <img src="/mouth/mouth_strain.png" class="mouth-img" alt="Pursed Mouth" />
-                <span>고음 (오므림)</span>
-              </div>
-              <div id="list-pursed" class="fingering-list-static"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <script type="module" src="/js/app.js"></script>
-  </body>
 </html>
