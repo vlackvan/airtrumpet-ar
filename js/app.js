@@ -7,6 +7,7 @@ import { initFaceDetector, detectFace } from './faceDetector.js';
 import { valveClassification, airflowClassification, distFaceToScreen, toneClassification } from './classifier.js';
 import { initAudio, resumeAudio, playNote, stopNote } from './audioEngine.js';
 import { drawFrame, updateHUD, updateFPS } from './renderer.js';
+import { initMission, checkMission } from './mission.js';
 
 // ── DOM Elements ──
 const loadingScreen = document.getElementById('loading-screen');
@@ -25,17 +26,14 @@ let prevNote = 'Not Detected';
 let isRunning = false;
 let animFrameId = null;
 
-// ── FPS tracking ──
 let lastFrameTime = 0;
 let frameCount = 0;
 let fpsAccumulator = 0;
 let displayFPS = 0;
 
-// ── Detection throttle (~30fps) ──
 const DETECTION_INTERVAL_MS = 33;
 let lastDetectionTime = 0;
 
-// Cached detection results
 let cachedHandLandmarks = null;
 let cachedFaceLandmarks = null;
 let cachedValveState = 'Not Detected';
@@ -50,37 +48,33 @@ async function initialize() {
 
     const updateProgress = (pct, msg) => {
         progress = pct;
-        console.log(`[AirTrumpet] 로딩: ${pct}% - ${msg}`);
         if (progressBar) progressBar.style.width = `${pct}%`;
         if (statusText) statusText.textContent = msg;
     };
 
     try {
-        // Load hand detector
         updateProgress(5, '손동작 감지 모델 로딩 중…');
         await initHandDetector((msg) => updateProgress(20, '손동작 감지 모델 준비 중…'));
         updateProgress(40, '손동작 감지 모델 완료');
 
-        // Load face detector
         updateProgress(45, '얼굴 감지 모델 로딩 중…');
         await initFaceDetector((msg) => updateProgress(60, '얼굴 감지 모델 준비 중…'));
         updateProgress(80, '얼굴 감지 모델 완료');
 
-        // Load audio samples
         updateProgress(85, '오디오 샘플 로딩 중…');
         await initAudio((msg) => updateProgress(90, '오디오 설정 중…'));
         updateProgress(100, '준비 완료!');
 
-        // Transition to start screen
+        // Initialize Mission System
+        initMission();
+
         setTimeout(() => {
             if (loadingScreen) loadingScreen.classList.add('hidden');
             if (startScreen) startScreen.classList.remove('hidden');
-            console.log('[AirTrumpet] 초기화 완료, 시작 화면으로 전환');
         }, 500);
     } catch (err) {
         console.error('[AirTrumpet] 초기화 실패:', err);
         updateProgress(0, `오류 발생: ${err.message}`);
-        alert(`초기화 중 오류가 발생했습니다: ${err.message}`);
     }
 }
 
@@ -89,16 +83,10 @@ async function initialize() {
 async function startCamera() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: 'user',
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-            },
+            video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
             audio: false,
         });
-
         videoEl.srcObject = stream;
-
         return new Promise((resolve) => {
             videoEl.onloadedmetadata = () => {
                 canvasEl.width = videoEl.videoWidth;
@@ -107,8 +95,7 @@ async function startCamera() {
             };
         });
     } catch (err) {
-        console.error('[AirTrumpet] 카메라 접근 실패:', err);
-        throw new Error('웹캠에 접근할 수 없습니다. 권한 설정을 확인해 주세요.');
+        throw new Error('카메라 액세스 거부 또는 장치 없음');
     }
 }
 
@@ -148,15 +135,16 @@ function renderLoop(timestamp) {
     const w = canvasEl.width;
     const h = canvasEl.height;
     drawFrame(ctx, w, h, videoEl, cachedHandLandmarks, cachedFaceLandmarks, cachedValveState, cachedLipState, cachedNoteString);
-
     updateHUD(cachedValveState, cachedLipState, cachedNoteString);
+
+    // Update Mission Progress
+    checkMission(cachedNoteString);
 
     animFrameId = requestAnimationFrame(renderLoop);
 }
 
 function runDetection(timestamp) {
     const timestampMs = Math.round(timestamp);
-
     cachedHandLandmarks = detectHands(videoEl, timestampMs);
     cachedFaceLandmarks = detectFace(videoEl, timestampMs);
 
@@ -167,10 +155,7 @@ function runDetection(timestamp) {
     }
 
     if (cachedFaceLandmarks) {
-        const dist = distFaceToScreen(
-            cachedFaceLandmarks[473],
-            cachedFaceLandmarks[468]
-        );
+        const dist = distFaceToScreen(cachedFaceLandmarks[473], cachedFaceLandmarks[468]);
         cachedLipState = airflowClassification(cachedFaceLandmarks, dist);
     } else {
         cachedLipState = 'Not Detected';
@@ -178,10 +163,7 @@ function runDetection(timestamp) {
 
     if (cachedHandLandmarks && cachedFaceLandmarks) {
         cachedNoteString = toneClassification(cachedValveState, cachedLipState);
-
-        if (cachedNoteString !== prevNote) {
-            playNote(cachedNoteString);
-        }
+        if (cachedNoteString !== prevNote) playNote(cachedNoteString);
         prevNote = cachedNoteString;
     } else {
         stopNote();
@@ -196,17 +178,11 @@ async function handleStart() {
     try {
         startScreen.classList.add('hidden');
         mainContainer.classList.remove('hidden');
-
         await startCamera();
         await resumeAudio();
-
         isRunning = true;
-        lastFrameTime = 0;
-        frameCount = 0;
-        fpsAccumulator = 0;
-        lastDetectionTime = 0;
+        lastFrameTime = 0; frameCount = 0; fpsAccumulator = 0; lastDetectionTime = 0;
         prevNote = 'Not Detected';
-
         animFrameId = requestAnimationFrame(renderLoop);
     } catch (err) {
         console.error('[AirTrumpet] 시작 실패:', err);
@@ -218,33 +194,18 @@ async function handleStart() {
 
 function handleStop() {
     isRunning = false;
-
-    if (animFrameId) {
-        cancelAnimationFrame(animFrameId);
-        animFrameId = null;
-    }
-
-    stopNote();
-    stopCamera();
-
+    if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+    stopNote(); stopCamera();
     ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-
-    cachedValveState = 'Not Detected';
-    cachedLipState = 'Not Detected';
-    cachedNoteString = 'Not Detected';
-    prevNote = 'Not Detected';
+    cachedValveState = 'Not Detected'; cachedLipState = 'Not Detected'; cachedNoteString = 'Not Detected'; prevNote = 'Not Detected';
     updateHUD(cachedValveState, cachedLipState, cachedNoteString);
     updateFPS(0);
-
     mainContainer.classList.add('hidden');
     startScreen.classList.remove('hidden');
 }
 
 // ── Event Listeners ──
-
 if (startBtn) startBtn.addEventListener('click', handleStart);
 if (stopBtn) stopBtn.addEventListener('click', handleStop);
-
-// ── Boot ──
 
 initialize();
