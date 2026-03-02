@@ -1,101 +1,106 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AirTrumpet — Virtual Gesture-Controlled Trumpet</title>
-    <meta name="description" content="Play a virtual trumpet using hand gestures and lip movements — powered by MediaPipe and Web Audio, entirely in your browser." />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css" />
-  </head>
-  <body>
-    <div id="app">
 
-      <!-- Loading Screen -->
-      <div id="loading-screen">
-        <div class="loading-content">
-          <div class="loading-icon">🎺</div>
-          <h1 class="loading-title">AirTrumpet</h1>
-          <p class="loading-subtitle">Initializing gesture detection…</p>
-          <div class="loading-bar-track">
-            <div class="loading-bar-fill" id="loading-progress"></div>
-          </div>
-          <p class="loading-status" id="loading-status-text">Loading MediaPipe models…</p>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AirTrumpet — Virtual Gesture-Controlled Trumpet</title>
+  <meta name="description"
+    content="Play a virtual trumpet using hand gestures and lip movements — powered by MediaPipe and Web Audio, entirely in your browser." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div class="loading-content">
+        <div class="loading-icon">🎺</div>
+        <h1 class="loading-title">AirTrumpet</h1>
+        <p class="loading-subtitle">Initializing gesture detection…</p>
+        <div class="loading-bar-track">
+          <div class="loading-bar-fill" id="loading-progress"></div>
         </div>
+        <p class="loading-status" id="loading-status-text">Loading MediaPipe models…</p>
       </div>
-
-      <!-- Start Screen (shown after models load, before camera starts) -->
-      <div id="start-screen" class="hidden">
-        <div class="start-content">
-          <div class="start-icon">🎺</div>
-          <h1 class="start-title">AirTrumpet</h1>
-          <p class="start-subtitle">A gesture-controlled virtual trumpet</p>
-          <button id="start-btn" class="btn-primary">
-            <span class="btn-icon">🎵</span>
-            Start Playing
-          </button>
-          <p class="start-hint">Requires webcam access • Use hand gestures + lip shapes to play notes</p>
-        </div>
-      </div>
-
-      <!-- Main Interface -->
-      <div id="main-container" class="hidden">
-
-        <!-- Video / Canvas Stack -->
-        <div id="video-container">
-          <video id="webcam" autoplay playsinline></video>
-          <canvas id="overlay-canvas"></canvas>
-
-          <!-- FPS Counter -->
-          <div id="fps-counter">-- FPS</div>
-        </div>
-
-        <!-- HUD Panel -->
-        <div id="hud-panel">
-
-          <!-- Valve State Indicator -->
-          <div class="hud-section" id="valve-section">
-            <h2 class="hud-label">Valves</h2>
-            <div class="valve-indicators">
-              <div class="valve" id="valve-back">
-                <span class="valve-label">1</span>
-                <span class="valve-name">Back</span>
-              </div>
-              <div class="valve" id="valve-middle">
-                <span class="valve-label">2</span>
-                <span class="valve-name">Mid</span>
-              </div>
-              <div class="valve" id="valve-front">
-                <span class="valve-label">3</span>
-                <span class="valve-name">Front</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Lip State Indicator -->
-          <div class="hud-section" id="lip-section">
-            <h2 class="hud-label">Embouchure</h2>
-            <div class="lip-state-badge" id="lip-badge">Not Detected</div>
-          </div>
-
-          <!-- Note Display -->
-          <div class="hud-section" id="note-section">
-            <h2 class="hud-label">Note</h2>
-            <div class="note-display" id="note-display">—</div>
-          </div>
-
-          <!-- Controls -->
-          <div class="hud-section" id="controls-section">
-            <button id="stop-btn" class="btn-secondary">Stop</button>
-          </div>
-
-        </div>
-      </div>
-
     </div>
 
-    <script type="module" src="/js/app.js"></script>
-  </body>
+    <!-- Start Screen (shown after models load, before camera starts) -->
+    <div id="start-screen" class="hidden">
+      <div class="start-content">
+        <div class="start-icon">🎺</div>
+        <h1 class="start-title">AirTrumpet</h1>
+        <p class="start-subtitle">A gesture-controlled virtual trumpet</p>
+        <button id="start-btn" class="btn-primary">
+          <span class="btn-icon">🎵</span>
+          Start Playing
+        </button>
+        <p class="start-hint">Requires webcam access • Use hand gestures + lip shapes to play notes</p>
+      </div>
+    </div>
+
+    <!-- Main Interface -->
+    <div id="main-container" class="hidden">
+
+      <!-- Video / Canvas Stack -->
+      <div id="video-container">
+        <video id="webcam" autoplay playsinline></video>
+        <canvas id="overlay-canvas"></canvas>
+
+        <!-- FPS Counter -->
+        <div id="fps-counter">-- FPS</div>
+      </div>
+
+      <!-- HUD Panel -->
+      <div id="hud-panel">
+
+        <!-- Valve State Indicator -->
+        <div class="hud-section" id="valve-section">
+          <h2 class="hud-label">Valves</h2>
+          <div class="valve-indicators">
+            <div class="valve" id="valve-front">
+              <span class="valve-label">1</span>
+              <span class="valve-name">Front</span>
+            </div>
+            <div class="valve" id="valve-middle">
+              <span class="valve-label">2</span>
+              <span class="valve-name">Mid</span>
+            </div>
+            <div class="valve" id="valve-back">
+              <span class="valve-label">3</span>
+              <span class="valve-name">Back</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lip State Indicator -->
+        <div class="hud-section" id="lip-section">
+          <h2 class="hud-label">Embouchure</h2>
+          <div class="lip-state-badge" id="lip-badge">Not Detected</div>
+        </div>
+
+        <!-- Note Display -->
+        <div class="hud-section" id="note-section">
+          <h2 class="hud-label">Note</h2>
+          <div class="note-display" id="note-display">—</div>
+        </div>
+
+        <!-- Controls -->
+        <div class="hud-section" id="controls-section">
+          <button id="stop-btn" class="btn-secondary">Stop</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+
 </html>

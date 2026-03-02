@@ -94,37 +94,21 @@ export function airflowClassification(lm, distToScreen) {
     const lipIsClosed =
         Math.ceil(lm[13].y * 100) >= Math.floor(lm[14].y * 100);
 
-    // Block 1: lip NOT closed — only "Pursed" returns here
-    // (matches Python lines 325–327: if not lip_is_closed → if x_diff <= threshold → "Pursed")
+    // Lip NOT closed → "Open" (Pursed collapsed into Open)
     if (!lipIsClosed) {
-        if (xDiffEdge <= PURSED_LIPS_THRESHOLD_X * scale) {
-            return 'Pursed';
-        }
-        // INTENTIONAL FALL-THROUGH when not pursed (no return)
+        return 'Open';
     }
 
-    // Block 2: lip IS closed — "Forced", "Strained", "Tensed", or "Closed"
-    // (matches Python lines 330–359)
+    // Lip IS closed → "Strained" or "Closed"
+    // Strained: tight vertical gap with moderate-to-wide commissures
+    // (absorbs both Strained and Forced from the original 6-state model)
     if (lipIsClosed) {
-        if (xDiffEdge <= PURSED_LIPS_THRESHOLD_X * scale) {
-            return 'Forced';
+        if (yDiffOuter <= STRAINED_LIPS_THRESHOLD_Y * scale) {
+            return 'Strained';
         }
-
-        if (
-            yDiffOuter <= STRAINED_LIPS_THRESHOLD_Y * scale &&
-            xDiffEdge > PURSED_LIPS_THRESHOLD_X * scale
-        ) {
-            if (xDiffEdge >= STRAINED_LIPS_THRESHOLD_X * scale) {
-                return 'Strained';
-            }
-            return 'Tensed';
-        }
-
         return 'Closed';
     }
 
-    // Block 3: reached only via fall-through from Block 1
-    // (matches Python lines 362–364: else → "Open")
     return 'Open';
 }
 
@@ -144,54 +128,24 @@ export function airflowClassification(lm, distToScreen) {
  */
 const TONE_TABLE = {
     Closed: {
-        BackMiddleFront: 'F#3',
-        BackFront: 'G3',
-        MiddleFront: 'G#3',
-        BackMiddle: 'A3',
-        Front: 'A3',
-        Back: 'A#3',
-        Middle: 'B3',
+        // BackMiddleFront: no mapping (all 3 valves = no note)
         None: 'C4',
-    },
-    Tensed: {
-        BackMiddleFront: 'C#4',
-        BackFront: 'D4',
-        MiddleFront: 'D#4',
-        BackMiddle: 'E4',
         Front: 'E4',
-        Back: 'F4',
         Middle: 'F#4',
-        None: 'G4',
+        Back: 'F4',
+        MiddleFront: 'D#4',   // Eb4
+        BackFront: 'D4',
+        BackMiddle: 'E4',
     },
     Strained: {
-        // BackMiddleFront: no mapping  (Python returns None implicitly)
-        // BackFront:       no mapping
-        MiddleFront: 'G#4',
-        BackMiddle: 'A4',
+        // BackMiddleFront: no mapping
+        None: 'G4',
         Front: 'A4',
-        Back: 'A#4',
         Middle: 'B4',
-        None: 'C5',
-    },
-    Pursed: {
-        // BackMiddleFront: no mapping
-        BackMiddle: 'C#5',
-        BackFront: 'D5',
-        MiddleFront: 'D#5',
-        Front: 'E5',
-        Back: 'F5',
-        Middle: 'F#5',
-        None: 'G5',
-    },
-    Forced: {
-        // BackMiddleFront: no mapping
-        // BackFront:       no mapping
-        MiddleFront: 'G#5',
-        BackMiddle: 'A5',
-        Front: 'A5',
-        Back: 'A#5',
-        Middle: 'B5',   // No WAV file exists
-        None: 'C6',   // No WAV file exists
+        Back: 'A#4',   // Bb4
+        MiddleFront: 'G#4',   // Ab4
+        BackFront: 'G4',
+        BackMiddle: 'A4',
     },
 };
 
