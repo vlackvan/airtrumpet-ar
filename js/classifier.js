@@ -47,10 +47,6 @@ export function airflowClassification(lm, distToScreen) {
     const yDiffOuter = Math.abs(lm[0].y - lm[17].y);
     const lipIsClosed = Math.ceil(lm[13].y * 100) >= Math.floor(lm[14].y * 100);
 
-    // Lip is closed when inner upper lip meets or overlaps inner lower lip
-    const lipIsClosed =
-        Math.ceil(lm[13].y * 100) >= Math.floor(lm[14].y * 100);
-
     // Lip NOT closed → "Open" (Pursed collapsed into Open)
     if (!lipIsClosed) {
         return 'Open';
