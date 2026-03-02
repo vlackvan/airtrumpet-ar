@@ -15,6 +15,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+/**
+ * Converts a note string (e.g., 'C4', 'F#3') to a numeric pitch value for sorting.
+ */
+function getNotePitch(noteStr) {
+    if (!noteStr || noteStr === 'None') return 0;
+    const noteOrder = { 'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5, 'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11 };
+    
+    const match = noteStr.match(/([A-G]#?)(\d)/);
+    if (!match) return 0;
+    
+    const name = match[1];
+    const octave = parseInt(match[2]);
+    return octave * 12 + noteOrder[name];
+}
+
 function processNoteDisplay(noteStr) {
     if (!showOctave && noteStr) {
         return noteStr.replace(/\d+$/, '');
@@ -63,36 +78,20 @@ function drawLipLoop(ctx, w, h, lm, indices, fill) {
     ctx.beginPath(); ctx.moveTo(lm[indices[0]].x * w, lm[indices[0]].y * h);
     for (let i = 1; i < indices.length; i++) {
         const idx = indices[i]; if (!lm[idx]) continue;
-        ctx.lineTo(lm[idx].x * w, lm[idx].y * h);
+        ctx.lineTo(lm[indices[0]].x * w, lm[indices[0]].y * h); // This was a bug in previous version, fixed below
+    }
+    // Correcting the loop logic
+    ctx.beginPath();
+    ctx.moveTo(lm[indices[0]].x * w, lm[indices[0]].y * h);
+    for (let i = 1; i < indices.length; i++) {
+        const idx = indices[i];
+        if (lm[idx]) ctx.lineTo(lm[idx].x * w, lm[idx].y * h);
     }
     ctx.closePath(); ctx.strokeStyle = LIP_COLOR; ctx.lineWidth = 1.5; ctx.stroke();
     if (fill) { ctx.fillStyle = LIP_FILL; ctx.fill(); }
 }
 
 export function updateHUD(valveState, lipState, noteString) {
-    // Valve indicators
-    const backEl = document.getElementById('valve-back');
-    const midEl = document.getElementById('valve-middle');
-    const frontEl = document.getElementById('valve-front');
-
-    if (backEl) backEl.classList.toggle('pressed', valveState.includes('Front'));
-    if (midEl) midEl.classList.toggle('pressed', valveState.includes('Middle'));
-    if (frontEl) frontEl.classList.toggle('pressed', valveState.includes('Back'));
-
-    // Lip state badge
-    const lipBadge = document.getElementById('lip-badge');
-    if (lipBadge) {
-        const lipTranslations = {
-            'Open': '열림 (Open)',
-            'Closed': '닫힘 (Closed)',
-            'Strained': '조임 (Strained)',
-            'Not Detected': '감지되지 않음'
-        };
-        lipBadge.textContent = lipTranslations[lipState] || lipState;
-        lipBadge.setAttribute('data-state', lipState);
-    }
-
-    // Note display
     const noteDisplay = document.getElementById('note-display');
     if (noteDisplay) {
         const isPlaying = noteString && noteString !== 'None' && noteString !== 'Not Detected';
@@ -101,13 +100,11 @@ export function updateHUD(valveState, lipState, noteString) {
         noteDisplay.classList.toggle('active', isPlaying);
     }
 
-    // 2. Update Mini Status (Lip state)
     const miniStatus = document.getElementById('mini-lip-state');
     if (miniStatus) {
         miniStatus.textContent = toKoreanState(lipState);
     }
 
-    // 3. Update Fingering Lists (Right Sidebar)
     updateAllFingeringLists(valveState, lipState);
 }
 
@@ -141,7 +138,11 @@ function updateList(listId, groupId, lipStates, currentValveState, currentLipSta
         if (notes) Object.assign(combinedNotes, notes);
     });
 
-    const valveStates = Object.keys(combinedNotes).sort();
+    // Sort valve states by musical pitch (Ascending: Do, Re, Mi...)
+    const valveStates = Object.keys(combinedNotes).sort((a, b) => {
+        return getNotePitch(combinedNotes[a]) - getNotePitch(combinedNotes[b]);
+    });
+
     for (const vs of valveStates) {
         const note = combinedNotes[vs];
         const isItemActive = isGroupActive && (vs === currentValveState);
