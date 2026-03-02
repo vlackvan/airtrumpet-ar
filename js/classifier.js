@@ -70,7 +70,7 @@ export function airflowClassification(lm, distToScreen) {
  */
 export const TONE_TABLE = {
     Closed: {
-        // BackMiddleFront: no mapping (all 3 valves = no note)
+        BackMiddleFront: 'C#4',
         None: 'C4',
         Front: 'E4',
         Middle: 'F#4',
@@ -80,7 +80,7 @@ export const TONE_TABLE = {
         BackMiddle: 'E4',
     },
     Strained: {
-        // BackMiddleFront: no mapping
+        BackMiddleFront: 'F#4',
         None: 'G4',
         Front: 'A4',
         Middle: 'B4',
