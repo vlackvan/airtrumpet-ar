@@ -22,7 +22,7 @@ export async function initMission() {
     }
 
     try {
-        const response = await fetch('/mission_guide.json');
+        const response = await fetch('./mission_guide.json');
         missionGuides = await response.json();
     } catch (err) {
         console.error('[AirTrumpet] 미션 가이드를 불러올 수 없습니다:', err);
@@ -71,8 +71,8 @@ export function checkMission(currentNote) {
         if (statusText) {
             statusText.style.setProperty('--p', '0%');
             
-            // Fix: Consistency with updateMissionHUD logic
-            const guideKey = currentStep === 0 ? "start" : `${SCALE_MISSION[currentStep - 1]}-${targetNote}`;
+            const prevNote = currentStep === 0 ? null : SCALE_MISSION[currentStep - 1];
+            const guideKey = currentStep === 0 ? "start" : `${prevNote}-${targetNote}`;
             const customGuide = missionGuides[guideKey];
             statusText.textContent = customGuide || `${toKoreanNote(targetNote)}를 연주해 보세요!`;
         }
@@ -104,8 +104,8 @@ function updateMissionHUD() {
     const statusText = document.getElementById('mission-status');
     if (statusText) {
         statusText.style.setProperty('--p', '0%');
-        // Fix: Consistency with checkMission logic
-        const guideKey = currentStep === 0 ? "start" : `${SCALE_MISSION[currentStep - 1]}-${targetNote}`;
+        const prevNote = currentStep === 0 ? null : SCALE_MISSION[currentStep - 1];
+        const guideKey = currentStep === 0 ? "start" : `${prevNote}-${targetNote}`;
         const customGuide = missionGuides[guideKey];
         statusText.textContent = customGuide || `${toKoreanNote(targetNote)}를 연주해 보세요!`;
     }
