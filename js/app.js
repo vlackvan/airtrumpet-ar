@@ -5,7 +5,7 @@
 import { initHandDetector, detectHands } from './handDetector.js';
 import { initFaceDetector, detectFace } from './faceDetector.js';
 import { valveClassification, airflowClassification, distFaceToScreen, toneClassification } from './classifier.js';
-import { initAudio, resumeAudio, playNote, stopNote } from './audioEngine.js';
+import { initAudio, resumeAudio, playNote, stopNote, toggleMute } from './audioEngine.js';
 import { drawFrame, updateHUD, updateFPS } from './renderer.js';
 import { initMission, checkMission } from './mission.js';
 
@@ -14,12 +14,16 @@ const loadingScreen = document.getElementById('loading-screen');
 const startScreen = document.getElementById('start-screen');
 const mainContainer = document.getElementById('main-container');
 const startBtn = document.getElementById('start-btn');
-const stopBtn = document.getElementById('stop-btn');
+const toggleMuteBtn = document.getElementById('toggle-mute-btn');
+const toggleMuteBtnMobile = document.getElementById('toggle-mute-btn-mobile');
 const progressBar = document.getElementById('loading-progress');
 const statusText = document.getElementById('loading-status-text');
 const videoEl = document.getElementById('webcam');
 const canvasEl = document.getElementById('overlay-canvas');
 const ctx = canvasEl.getContext('2d');
+
+const toggleFingeringBtn = document.getElementById('toggle-fingering-btn');
+const hudPanelContainer = document.getElementById('hud-panel-container');
 
 // ── State ──
 let prevNote = 'Not Detected';
@@ -206,6 +210,48 @@ function handleStop() {
 
 // ── Event Listeners ──
 if (startBtn) startBtn.addEventListener('click', handleStart);
-if (stopBtn) stopBtn.addEventListener('click', handleStop);
+
+function updateMuteUI(isMuted) {
+    const text = isMuted ? '소리 켜기' : '소리 끄기';
+    const pcText = document.getElementById('mute-text');
+    const mobileText = document.getElementById('mute-text-mobile');
+    
+    if (pcText) pcText.textContent = text;
+    if (mobileText) mobileText.textContent = text;
+
+    if (toggleMuteBtn) toggleMuteBtn.classList.toggle('active', isMuted);
+    if (toggleMuteBtnMobile) toggleMuteBtnMobile.classList.toggle('active', isMuted);
+}
+
+if (toggleMuteBtn) {
+    toggleMuteBtn.addEventListener('click', () => {
+        const isMuted = toggleMute();
+        updateMuteUI(isMuted);
+    });
+}
+
+if (toggleMuteBtnMobile) {
+    toggleMuteBtnMobile.addEventListener('click', () => {
+        const isMuted = toggleMute();
+        updateMuteUI(isMuted);
+    });
+}
+
+if (toggleFingeringBtn) {
+    toggleFingeringBtn.addEventListener('click', () => {
+        hudPanelContainer.classList.toggle('hidden');
+        toggleFingeringBtn.classList.toggle('active');
+    });
+}
+
+// Close guide if clicking outside the card
+if (hudPanelContainer) {
+    hudPanelContainer.addEventListener('click', (e) => {
+        if (e.target === hudPanelContainer) {
+            hudPanelContainer.classList.add('hidden');
+            toggleFingeringBtn.classList.remove('active');
+        }
+    });
+}
 
 initialize();

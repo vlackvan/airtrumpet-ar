@@ -6,11 +6,30 @@ let showOctave = true;
 
 document.addEventListener('DOMContentLoaded', () => {
     const toggleBtn = document.getElementById('toggle-octave-btn');
+    const toggleBtnMobile = document.getElementById('toggle-octave-btn-mobile');
+    
+    const updateOctaveUI = () => {
+        const text = showOctave ? '옥타브 숨기기' : '옥타브 표시';
+        if (toggleBtn) {
+            toggleBtn.textContent = text;
+            toggleBtn.classList.toggle('active', !showOctave);
+        }
+        if (toggleBtnMobile) {
+            toggleBtnMobile.textContent = text;
+            toggleBtnMobile.classList.toggle('active', !showOctave);
+        }
+    };
+
     if (toggleBtn) {
         toggleBtn.addEventListener('click', () => {
             showOctave = !showOctave;
-            toggleBtn.textContent = showOctave ? '옥타브 숨기기' : '옥타브 표시';
-            toggleBtn.classList.toggle('active', !showOctave);
+            updateOctaveUI();
+        });
+    }
+    if (toggleBtnMobile) {
+        toggleBtnMobile.addEventListener('click', () => {
+            showOctave = !showOctave;
+            updateOctaveUI();
         });
     }
 });
@@ -75,35 +94,52 @@ function drawLipContour(ctx, w, h, lm) {
 
 function drawLipLoop(ctx, w, h, lm, indices, fill) {
     if (!lm[indices[0]]) return;
-    ctx.beginPath(); ctx.moveTo(lm[indices[0]].x * w, lm[indices[0]].y * h);
-    for (let i = 1; i < indices.length; i++) {
-        const idx = indices[i]; if (!lm[idx]) continue;
-        ctx.lineTo(lm[indices[0]].x * w, lm[indices[0]].y * h); // This was a bug in previous version, fixed below
-    }
-    // Correcting the loop logic
     ctx.beginPath();
     ctx.moveTo(lm[indices[0]].x * w, lm[indices[0]].y * h);
     for (let i = 1; i < indices.length; i++) {
         const idx = indices[i];
         if (lm[idx]) ctx.lineTo(lm[idx].x * w, lm[idx].y * h);
     }
-    ctx.closePath(); ctx.strokeStyle = LIP_COLOR; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.closePath(); 
+    ctx.strokeStyle = LIP_COLOR; 
+    ctx.lineWidth = 1.5; 
+    ctx.stroke();
     if (fill) { ctx.fillStyle = LIP_FILL; ctx.fill(); }
 }
 
 export function updateHUD(valveState, lipState, noteString) {
+    const isPlaying = noteString && noteString !== 'None' && noteString !== 'Not Detected';
+    const rawNote = toKoreanNote(noteString);
+    const processedNote = isPlaying ? processNoteDisplay(rawNote) : '—';
+
+    // PC HUD
     const noteDisplay = document.getElementById('note-display');
     if (noteDisplay) {
-        const isPlaying = noteString && noteString !== 'None' && noteString !== 'Not Detected';
-        const rawNote = toKoreanNote(noteString);
-        noteDisplay.textContent = isPlaying ? processNoteDisplay(rawNote) : '—';
+        noteDisplay.textContent = processedNote;
         noteDisplay.classList.toggle('active', isPlaying);
     }
-
     const miniStatus = document.getElementById('mini-lip-state');
-    if (miniStatus) {
-        miniStatus.textContent = toKoreanState(lipState);
+    if (miniStatus) miniStatus.textContent = toKoreanState(lipState);
+
+    // Mobile HUD
+    const noteMobile = document.getElementById('note-display-mobile');
+    if (noteMobile) noteMobile.textContent = processedNote;
+
+    const valveMobile = document.getElementById('valve-display-mobile');
+    if (valveMobile) {
+        const formatValve = (vs) => {
+            if (vs === 'None' || vs === 'Not Detected') return '0';
+            let res = [];
+            if (vs.includes('Back')) res.push('1');
+            if (vs.includes('Middle')) res.push('2');
+            if (vs.includes('Front')) res.push('3');
+            return res.join('-');
+        };
+        valveMobile.textContent = formatValve(valveState);
     }
+
+    const lipMobile = document.getElementById('lip-display-mobile');
+    if (lipMobile) lipMobile.textContent = toKoreanState(lipState);
 
     updateAllFingeringLists(valveState, lipState);
 }
